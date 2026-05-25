@@ -57,52 +57,62 @@ $$z = \frac{x - \mu}{\sigma}$$
 
 ---
 
-## 4. The Classification Engine: Logistic Regression with Class Balancing
+## 4. Advanced Imbalanced Data Handling
 
-At the core of the system is **Logistic Regression**, enhanced with class weighting.
+In fraud datasets, fraud events usually represent $<0.1\%$ of all records. A naive model would achieve $99.9\%$ accuracy by simply classifying all transactions as genuine. To overcome this extreme class imbalance, we benchmarked three robust methodologies:
 
-### Why Logistic Regression for Fraud Detection?
-1. **Millisecond Inference Latency**: Crucial for payment gateways where latency limits are typically under 50ms.
-2. **Probability Estimations**: The model outputs calibrated probability scores instead of just a hard class assignment, allowing risk departments to tune threshold alerts.
-3. **High Interpretability**: Each feature has a direct mathematical coefficient, letting compliance officers understand exactly *why* a transaction was flagged.
+### A. SMOTE (Synthetic Minority Over-sampling Technique)
+We utilized `imblearn`'s SMOTE algorithm to synthetically generate new minority instances. While it significantly increased recall, it generated a high number of false positives (Precision: ~0.59, F1-Score: 0.72).
 
-### Addressing Class Imbalance
-In fraud datasets, fraud events usually represent $<0.1\%$ of all records. A naive model would achieve $99.9\%$ accuracy by simply classifying all transactions as genuine. To overcome this, the model uses a **balanced class weight** algorithm, scaling the loss function inversely proportional to class frequencies:
+### B. Data Augmentation (Gaussian Noise)
+We injected a small amount of Gaussian noise into the numerical features of duplicated fraud cases. This provided a better balance between precision and recall than SMOTE (F1-Score: 0.79).
 
-$$w_c = \frac{N_{\text{samples}}}{N_{\text{classes}} \times N_{\text{samples in class } c}}$$
-
-This increases the penalty of misclassifying a fraudulent transaction, shifting the decision boundary to protect against false negatives (missing real fraud).
+### C. Focal Loss with Gradient Boosting (Winner)
+We replaced the Logistic Regression engine with an **XGBoost** classifier equipped with a custom **Focal Loss** objective function. Focal Loss dynamically scales the loss based on prediction confidence, heavily penalizing mistakes on hard-to-predict fraud cases while down-weighting the massive amount of easy non-fraud cases.
+* **Performance:** This approach dominated the benchmark, achieving a near-perfect **F1-Score of 0.973** and an **AUC-ROC of 0.999**.
 
 ---
 
-## 5. Model Performance & Insights Dashboard
+## 5. Model Evaluation & Diagnostics
 
-To evaluate the capabilities of our model, we track key metrics including **Area Under the Receiver Operating Characteristic Curve (ROC AUC)** and relative feature contributions.
+To evaluate the capabilities and robustness of our model, we track key metrics and diagnose learning behaviors.
 
-### A. ROC Curve Analysis
-The **ROC Curve** represents the trade-off between the **True Positive Rate (Sensitivity)** and the **False Positive Rate (1 - Specificity)** at various threshold levels. Our model achieves a stellar **ROC AUC of 0.94**, signifying excellent discriminative capability.
+### A. Overfitting vs. Underfitting Diagnostic (Learning Curves)
+To ensure our XGBoost model generalizes well and does not memorize the training data, we generated learning curves tracking the Log Loss over boosting iterations:
+
+![Learning Curves (Train vs Validation)](file:///Users/elbakkourihoussam/fraud_detection/learning_curves.png)
+
+* **Conclusion:** Both training and validation losses drop sharply and stabilize together. The validation loss does not diverge or increase, confirming that the model **does not suffer from overfitting** and has excellent generalization capabilities.
+
+### B. ROC Curve Analysis
+Our model achieves a stellar **ROC AUC**, signifying excellent discriminative capability between genuine and fraudulent transactions.
 
 ![Model Performance: ROC Curve](file:///Users/elbakkourihoussam/fraud_detection/assets/fraud_roc_chart.png)
 
-### B. Feature Contribution & Insights
+### C. Feature Contribution & Insights
 Using SHAP value estimations, we quantified which attributes hold the highest predictive weight in identifying fraud:
 
 ![Model Insights: Feature Importance Dashboard](file:///Users/elbakkourihoussam/fraud_detection/assets/feature_importance.png)
 
-* **Key Insight**: The transacted **amount** and the sender's starting balance (`oldbalanceOrg`) represent over **50%** of the model's decision-making weight, reflecting that extreme values and complete account depletion are primary indicators of suspicious behavior.
+* **Key Insight:** The transacted **amount** and the sender's starting balance (`oldbalanceOrg`) represent the highest predictive weight, reflecting that extreme values and complete account depletion are primary indicators of suspicious behavior.
 
 ---
 
 ## 6. Project Structure
 
-```
+```text
 ├── fraud_detection.py          # Interactive Streamlit Web UI & Prediction App
 ├── fraud_detection_pipeline.pkl# Serialized pre-trained Pipeline (Preprocessing + Model)
-├── analysis_model.ipynb        # Jupyter Notebook used for Model Training & EDA
-├── AIML Dataset.csv            # Large historical transactions dataset (493 MB)
+├── analysis_model.ipynb        # Jupyter Notebook used for initial EDA
+├── benchmark_imbalanced.py     # Script benchmarking SMOTE, Augmentation & Focal Loss
+├── plot_learning_curves.py     # Script generating the overfitting diagnostic curves
+├── AIML Dataset.csv            # Large historical transactions dataset
+├── learning_curves.png         # Diagnostic graph for Overfitting/Underfitting
+├── benchmark.log               # Execution logs for the imbalanced data benchmark
+├── benchmark_results.csv       # Output metrics comparing the three methods
 ├── assets/                     # Graphic assets for technical documentation
-│   ├── fraud_roc_chart.png     # ROC Curve chart
-│   └── feature_importance.png  # Feature insights dashboard
+│   ├── fraud_roc_chart.png     
+│   └── feature_importance.png  
 └── README.md                   # Project technical report & documentation
 ```
 
