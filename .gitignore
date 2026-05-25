@@ -1,0 +1,50 @@
+# Python virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Huge data files (GitHub limit is 100MB)
+AIML Dataset.csv
+*.csv
+*.zip
+*.gz
+*.tar
+
+# Credentials and secrets
+kaggle.json
+.env
+
+# Streamlit configurations or operational folders
+.streamlit/
