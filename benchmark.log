@@ -1,0 +1,53 @@
+Loading dataset...
+Dataset shape after sampling: (108213, 11)
+Fraud cases: 8213, Non-fraud cases: 100000
+Preprocessing data...
+
+--- Method 1: SMOTE ---
+SMOTE Training Time: 0.37s
+SMOTE Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.99      0.95      0.97     20000
+           1       0.59      0.93      0.73      1643
+
+    accuracy                           0.95     21643
+   macro avg       0.79      0.94      0.85     21643
+weighted avg       0.96      0.95      0.95     21643
+
+
+--- Method 2: Data Augmentation (Gaussian Noise) ---
+Data Augmentation Training Time: 0.12s
+Data Augmentation Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.97      1.00      0.99     20000
+           1       0.93      0.69      0.79      1643
+
+    accuracy                           0.97     21643
+   macro avg       0.95      0.84      0.89     21643
+weighted avg       0.97      0.97      0.97     21643
+
+
+--- Method 3: Focal Loss (XGBoost) ---
+Focal Loss Training Time: 0.41s
+Focal Loss Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     20000
+           1       0.98      0.97      0.97      1643
+
+    accuracy                           1.00     21643
+   macro avg       0.99      0.98      0.99     21643
+weighted avg       1.00      1.00      1.00     21643
+
+
+========================================
+ BENCHMARK SUMMARY
+========================================
+                   F1-Score   AUC-ROC   Time(s)
+SMOTE              0.726929  0.986605  0.369994
+Data Augmentation  0.791040  0.976428  0.124773
+Focal Loss         0.973337  0.999288  0.409528
+========================================
+Benchmark completed. Results saved to benchmark_results.csv
