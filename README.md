@@ -111,7 +111,7 @@ Using SHAP value estimations, we quantified which attributes hold the highest pr
 ## 7. How to Set Up and Run
 
 ### Step 1: Clone and Navigate
-Navigate to the project workspace:
+Navigate to the project workspace: ( my path ) 
 ```bash
 cd /Users/elbakkourihoussam/fraud_detection
 ```
